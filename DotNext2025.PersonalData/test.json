@@ -1,0 +1,14 @@
+﻿{
+	"CustomerId": "4dc944b2-4113-4b05-a1e1-b582ab573a87",
+	"Subscription": "Standard",
+	"Email": "Maci39@hotmail.com",
+	"SecretToken": "7efcaff1-46bb-4ec1-bdbf-1e609d9d32a0",
+	"Passport": {
+		"Number": "b1b33802-4e8a-44f7-9961-8aa455e68dd1"
+	},
+	"Address": {
+		"City": "New Damian",
+		"Street": "Boyer Brooks"
+	},
+	"RegistrationDate": "2025-06-14T18:06:25.744574Z"
+}
