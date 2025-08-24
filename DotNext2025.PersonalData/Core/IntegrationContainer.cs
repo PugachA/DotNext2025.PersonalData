@@ -13,6 +13,3 @@ public class Metadata
 {
     public EncryptionParameters? EncryptionParameters { get; set; }
 }
-
-public record EncryptionParameters(EncryptionAlgorithm Algorithm, string KeyName, string KeyVersion);
-

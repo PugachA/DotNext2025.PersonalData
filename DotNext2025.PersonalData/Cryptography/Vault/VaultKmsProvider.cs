@@ -98,7 +98,7 @@ public class VaultKmsProvider : IKmsProvider
         _ => throw new ArgumentException($"TransitKeyType {type} not supported")
     };
 
-    public async Task<TResult> RetryOnExceptionAsync<TResult, TException>(
+    private async Task<TResult> RetryOnExceptionAsync<TResult, TException>(
             int maxRetryCount,
             TimeSpan delay,
             Func<Task<TResult>> onRetryAsync,

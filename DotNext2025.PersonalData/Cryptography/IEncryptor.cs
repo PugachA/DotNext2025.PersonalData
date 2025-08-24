@@ -4,4 +4,3 @@ public interface IEncryptor
     byte[] Decrypt(ReadOnlySpan<byte> data);
     byte[] Encrypt(ReadOnlySpan<byte> data);
 }
-

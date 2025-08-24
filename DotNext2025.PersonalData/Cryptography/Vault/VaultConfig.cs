@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DotNext2025.PersonalData.Cryptography;
+﻿namespace DotNext2025.PersonalData.Cryptography;
 public class VaultConfig
 {
     public string VaultServer { get; set; } = null!;

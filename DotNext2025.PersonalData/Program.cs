@@ -25,22 +25,22 @@ var vaultConfig = new CachedVaultConfig
 var authMethod = new TokenAuthMethodInfo("00000000-0000-0000-0000-000000000000");
 var kmsProvider = VaultKmsProviderFactory.CreateCachedProvider(vaultConfig, authMethod, loggerFactory);
 
-var topic = "Customer.v1";
+var topic = "Order.v1";
 var producerConfig = new ProducerConfig()
 {
     BootstrapServers = "127.0.0.1:15000",
     SecurityProtocol = SecurityProtocol.Plaintext,
     Acks = Acks.All
 };
-var valueSerializer = new EncryptedKafkaJsonSerializer<Customer>(kmsProvider);
-var producerBuilder = new ProducerBuilder<string, Customer>(producerConfig)
+var valueSerializer = new EncryptedKafkaJsonSerializer<Order>(kmsProvider);
+var producerBuilder = new ProducerBuilder<string, Order>(producerConfig)
     .SetKeySerializer(Serializers.Utf8)
     .SetValueSerializer(valueSerializer);
 
 var producer = producerBuilder.Build();
 
-var customer = Fakers.Customer.Generate();
-var message = new Message<string, Customer>
+var customer = Fakers.Order.Generate();
+var message = new Message<string, Order>
 {
     Key = customer.GetKey().ToString(),
     Value = customer
@@ -56,10 +56,10 @@ var consumerConfig = new ConsumerConfig
     GroupId = consumerGroup
 };
 
-var valueDeserializer = new EncryptedKafkaJsonDeserializer<Customer>(kmsProvider);
-var consumerBuilder = new ConsumerBuilder<string, Customer>(consumerConfig)
+var valueDeserializer = new EncryptedKafkaJsonDeserializer<Order>(kmsProvider);
+var consumerBuilder = new ConsumerBuilder<string, Order>(consumerConfig)
     .SetKeyDeserializer(Deserializers.Utf8)
-    .SetValueDeserializer(new SyncOverAsyncDeserializer<Customer>(valueDeserializer!));
+    .SetValueDeserializer(new SyncOverAsyncDeserializer<Order>(valueDeserializer!));
 
 var consumer = consumerBuilder.Build();
 consumer.Subscribe(topic);
@@ -71,10 +71,9 @@ while (true)
     logger.LogInformation(JsonSerializer.Serialize(result.Message.Value, options));
 }
 
-//БД Код показывать не буду
+//БД
 //1. Параметры храним в отдельной таблице. Делаем перешифровку по параметрам
 // Удобно использовать когда данные не перекладываются в другие таблицы
 //2. Параметры храним внутри данных и в отдельной таблице. Таблицу используем для перешифровки, а параметры внутри данных для расшифровки.
 // Удобно когда нужно дальше использовать данные в ETL процессах.
 // Удобно но занимает больше места
-//3. Можно что-то придумать для интеграции с EF 

@@ -12,7 +12,7 @@ public class EncryptedKafkaJsonDeserializer<T>(IKmsProvider kmsProvider, JsonSer
 
     public async Task<T?> DeserializeAsync(ReadOnlyMemory<byte> data, bool isNull, SerializationContext context)
     {
-        if (isNull)
+        if (isNull) 
             return default;
 
         if (context.Headers is null)

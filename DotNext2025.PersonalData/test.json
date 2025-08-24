@@ -1,14 +1,21 @@
 ﻿{
-	"CustomerId": "4dc944b2-4113-4b05-a1e1-b582ab573a87",
-	"Subscription": "Standard",
-	"Email": "Maci39@hotmail.com",
-	"SecretToken": "7efcaff1-46bb-4ec1-bdbf-1e609d9d32a0",
-	"Passport": {
-		"Number": "b1b33802-4e8a-44f7-9961-8aa455e68dd1"
-	},
+	"OrderId": "f649f16f-f4e3-4915-88e4-adf2decf259f",
+	"Email": "Althea.Volkman36@gmail.com",
+	"Phone": "(558) 428-2569 x421",
+	"OrderDate": "2025-08-24T12:03:13.7237278Z",
+	"PaymentMethod": "Mir",
 	"Address": {
-		"City": "New Damian",
-		"Street": "Boyer Brooks"
+		"City": "Walshborough",
+		"Street": "Maurice Rue"
 	},
-	"RegistrationDate": "2025-06-14T18:06:25.744574Z"
+	"Items": [
+		{
+			"SKU": "8e0c331f-b14c-4f58-b3b7-9b9b41dfa394",
+			"Name": "Rustic Granite Car",
+			"Quantity": 2,
+			"PricePerUnit": 913.65
+		}
+	],
+	"TotalAmount": 1827.30,
+	"Currency": "RUB"
 }

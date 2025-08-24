@@ -1,12 +1,12 @@
-﻿using System.Reflection;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Confluent.Kafka;
 using DotNext2025.PersonalData.Core;
 using DotNext2025.PersonalData.Cryptography;
 
 namespace DotNext2025.PersonalData.Kafka;
 public class EncryptedKafkaJsonSerializer<T>(IKmsProvider kmsProvider, JsonSerializerOptions? options = null) 
-    : BaseEncryptedKafkaJsonSerializer<T>(kmsProvider, options), IAsyncSerializer<T> where T : IIntegrationMessage
+    : BaseEncryptedKafkaJsonSerializer<T>(kmsProvider, options), IAsyncSerializer<T> 
+    where T : IIntegrationMessage
 {
     private readonly EncryptionAlgorithm _algorithm = IntegrationAttr.EncryptionAlgorithm;
     //Работаем только в рамках одного mountPoint
