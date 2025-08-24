@@ -1,34 +1,19 @@
 ﻿using AWS.EncryptionSDK;
 using AWS.EncryptionSDK.Core;
-using BenchmarkDotNet.Attributes;
 using Org.BouncyCastle.Security;
 
-namespace DotNext2025.Benchmarks.Benchmarks;
+namespace DotNext2025.Benchmarks.Examples;
 
-[MemoryDiagnoser]
-public class OneVsMultipleWrappingKeyBenchmark
+internal static class AwsExample
 {
-    [Params(10)]
-    public int length;
-
-    [Params(1, 2, 3)]
-    public int keyCount;
-
-    [ParamsSource(nameof(AlgorithmSuiteIds))]
-    public AlgorithmSuiteId algorithmSuiteId = default!;
-
-    private byte[] data = null!;
-    private IKeyring multiKeyring = null!;
-
-    public IEnumerable<AlgorithmSuiteId> AlgorithmSuiteIds()
+    public static void Run()
     {
-        yield return AlgorithmSuiteId.ALG_AES_256_GCM_IV12_TAG16_NO_KDF;
-    }
+        var length = 10;
+        var keyCount = 1;
+        var algorithmSuiteId = AlgorithmSuiteId.ALG_AES_256_GCM_IV12_TAG16_NO_KDF;
 
-    [GlobalSetup]
-    public void Setup()
-    {
-        data = Enumerable.Repeat(0, length).Select(e => (byte)Random.Shared.Next(256)).ToArray();
+        var data = Enumerable.Repeat(0, length).Select(e => (byte)Random.Shared.Next(256)).ToArray();
+        Console.WriteLine($"Original: {Convert.ToBase64String(data)}");
 
         var aesMaterialProviders = AwsCryptographicMaterialProvidersFactory.CreateDefaultAwsCryptographicMaterialProviders();
 
@@ -47,7 +32,7 @@ public class OneVsMultipleWrappingKeyBenchmark
             keyRings.Add(aesMaterialProviders.CreateRawAesKeyring(createKeyringInput));
         }
 
-        
+        IKeyring multiKeyring = null!;
         if (keyRings.Count == 1)
             multiKeyring = keyRings.First();
 
@@ -58,11 +43,7 @@ public class OneVsMultipleWrappingKeyBenchmark
             createMultiKeyringInput.ChildKeyrings = keyRings.GetRange(1, keyRings.Count - 1);
             multiKeyring = aesMaterialProviders.CreateMultiKeyring(createMultiKeyringInput);
         }
-    }
 
-    [Benchmark]
-    public void UseAes()
-    {
         var encryptInput = new EncryptInput
         {
             Plaintext = new MemoryStream(data),
@@ -79,7 +60,6 @@ public class OneVsMultipleWrappingKeyBenchmark
             config.CommitmentPolicy = CommitmentPolicy.FORBID_ENCRYPT_ALLOW_DECRYPT;
 
         var encryptionSdk = AwsEncryptionSdkFactory.CreateAwsEncryptionSdk(config);
-
         var encryptOutput = encryptionSdk.Encrypt(encryptInput);
 
         var decryptInput = new DecryptInput
@@ -89,5 +69,6 @@ public class OneVsMultipleWrappingKeyBenchmark
         };
 
         var decryptOutput = encryptionSdk.Decrypt(decryptInput);
+        Console.WriteLine($"Decrypted: {Convert.ToBase64String(decryptOutput.Plaintext.ToArray())}");
     }
 }

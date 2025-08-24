@@ -1,30 +1,22 @@
 ﻿using AWS.EncryptionSDK;
 using AWS.EncryptionSDK.Core;
 using BenchmarkDotNet.Attributes;
+using DotNext2025.PersonalData.Cryptography;
+using Jose;
 using Org.BouncyCastle.Security;
 
 namespace DotNext2025.Benchmarks.Benchmarks;
 
 [MemoryDiagnoser]
-public class AlgorithmSuiteIdBenchmark
+public class AwsVsJweVsCustomBenchmark
 {
     [Params(10)]
     public int length;
 
-    [ParamsSource(nameof(AlgorithmSuiteIds))]
-    public AlgorithmSuiteId algorithmSuiteId = default!;
-
     private byte[] data = null!;
+    private byte[] aesKey = null!;
     private IKeyring aesKeyring = null!;
-
-    public IEnumerable<AlgorithmSuiteId> AlgorithmSuiteIds()
-    {
-        yield return AlgorithmSuiteId.ALG_AES_256_GCM_IV12_TAG16_NO_KDF;
-        yield return AlgorithmSuiteId.ALG_AES_256_GCM_IV12_TAG16_HKDF_SHA256;
-        yield return AlgorithmSuiteId.ALG_AES_256_GCM_IV12_TAG16_HKDF_SHA384_ECDSA_P384;
-        yield return AlgorithmSuiteId.ALG_AES_256_GCM_HKDF_SHA512_COMMIT_KEY;
-        yield return AlgorithmSuiteId.ALG_AES_256_GCM_HKDF_SHA512_COMMIT_KEY_ECDSA_P384;
-    }
+    private AesGcmEncryptor aesGcmEncryptor = null!;
 
     [GlobalSetup]
     public void Setup()
@@ -32,7 +24,8 @@ public class AlgorithmSuiteIdBenchmark
         data = Enumerable.Repeat(0, length).Select(e => (byte)Random.Shared.Next(256)).ToArray();
 
         var aesMaterialProviders = AwsCryptographicMaterialProvidersFactory.CreateDefaultAwsCryptographicMaterialProviders();
-        var aesWrappingKey = new MemoryStream(GeneratorUtilities.GetKeyGenerator("AES256").GenerateKey());
+        aesKey = GeneratorUtilities.GetKeyGenerator("AES256").GenerateKey();
+        var aesWrappingKey = new MemoryStream(aesKey);
         var createKeyringInput = new CreateRawAesKeyringInput
         {
             KeyNamespace = "HSM_01",
@@ -42,10 +35,30 @@ public class AlgorithmSuiteIdBenchmark
         };
 
         aesKeyring = aesMaterialProviders.CreateRawAesKeyring(createKeyringInput);
+
+        aesGcmEncryptor = new AesGcmEncryptor(aesKey, 12, 16);
     }
 
     [Benchmark]
-    public void UseAes()
+    public void UseAws_ALG_AES_256_GCM_HKDF_SHA512_COMMIT_KEY()
+    {
+        UseAws(AlgorithmSuiteId.ALG_AES_256_GCM_HKDF_SHA512_COMMIT_KEY);
+    }
+
+    [Benchmark]
+    public void UseJwe_A256GCMKW()
+    {
+        UseJwe(JweAlgorithm.A256GCMKW);
+    }
+
+    [Benchmark]
+    public void UseCustom_Aes256Gcm()
+    {
+        var encryptedData = aesGcmEncryptor.Encrypt(data);
+        var decryptedData = aesGcmEncryptor.Decrypt(encryptedData);
+    }
+
+    private void UseAws(AlgorithmSuiteId algorithmSuiteId)
     {
         var encryptInput = new EncryptInput
         {
@@ -73,5 +86,16 @@ public class AlgorithmSuiteIdBenchmark
         };
 
         var decryptOutput = encryptionSdk.Decrypt(decryptInput);
+    }
+
+    private void UseJwe(JweAlgorithm jweAlgorithm)
+    {
+        var encrypted = JWE.EncryptBytes(
+            data,
+            new[] { new JweRecipient(jweAlgorithm, aesKey) },
+            JweEncryption.A256GCM,
+            mode: SerializationMode.Compact);
+
+        var decryptOutput = JWE.Decrypt(encrypted, aesKey);
     }
 }
